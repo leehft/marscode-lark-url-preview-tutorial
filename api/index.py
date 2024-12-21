@@ -3,10 +3,13 @@ from flask import Flask, request, jsonify, redirect
 import hashlib
 import random
 import datetime
-from urllib.parse import urlparse
+from urllib.parse import urlparse, parse_qs
 from cachetools import cached, TTLCache
+import os
+from dotenv import load_dotenv
 
 app = Flask(__name__)
+load_dotenv()
 
 def get_tarot_card(user_id):
     tarot_cards = ["愚者", "魔术师", "女祭司", "皇后", "皇帝", "教皇", "恋人", "战车",
@@ -51,6 +54,17 @@ def handler():
                 inline_title = "今天你的塔罗牌是：" + tarot_card
             elif path == '/hitokoto':
                 inline_title = get_hitokoto()
+            elif path == '/weather':
+                # 从 URL 的查询参数中获取 city 信息
+                query_params = parse_qs(parsed_url.query)
+                city = query_params.get('city', [None])[0]
+                if city is None:
+                    city = '110000'
+                weather_info = query_weather(city)
+                if weather_info:
+                    inline_title = weather_info
+                else:
+                    inline_title = "获取天气失败"
             else:
                 inline_title = "你好 Marscode"
             return jsonify({
@@ -82,3 +96,20 @@ def hitokoto_redirect():
 @app.route('/<path:path>')
 def catch_all(path):
     return redirect('https://www.marscode.cn/')
+
+def query_weather(city):
+    # 假设高德天气 API 的 key 存储在环境变量中
+    api_key = os.getenv('AMAP_WEATHER_API_KEY')
+    # 构建请求 URL
+    url = f"https://restapi.amap.com/v3/weather/weatherInfo?key={api_key}&city={city}"
+    response = requests.get(url)
+    if response.status_code == 200:
+        weather_data = response.json()
+        # 假设提取天气信息的逻辑，根据高德天气 API 的实际响应结构调整
+        city_name = weather_data.get('lives')[0].get('city')
+        weather_info = weather_data.get('lives')[0].get('weather')
+        # 构建新的返回格式
+        result = f"【{city_name}】今天的天气：【{weather_info}】"
+        return result
+    else:
+        return None
