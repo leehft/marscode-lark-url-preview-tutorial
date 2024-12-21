@@ -31,7 +31,7 @@ def get_hitokoto():
         return "获取一言失败"
 
 @app.route('/api/handler', methods=['POST'])
-def handler():
+def lark_api_handler():
     body = request.json
     if app.debug:
         print(body)
