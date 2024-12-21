@@ -1,8 +1,10 @@
+import requests
 from flask import Flask, request, jsonify, redirect
 import hashlib
 import random
 import datetime
 from urllib.parse import urlparse
+from cachetools import cached, TTLCache
 
 app = Flask(__name__)
 
@@ -15,6 +17,15 @@ def get_tarot_card(user_id):
     hash_value = int(hashlib.sha256(combined.encode()).hexdigest(), 16)
     index = hash_value % len(tarot_cards)
     return tarot_cards[index]
+
+@cached(cache=TTLCache(maxsize=1, ttl=5))
+def get_hitokoto():
+    response = requests.get('https://v1.hitokoto.cn/')
+    if response.status_code == 200:
+        data = response.json()
+        return data.get('hitokoto')
+    else:
+        return "获取一言失败"
 
 @app.route('/api/handler', methods=['POST'])
 def handler():
@@ -38,6 +49,8 @@ def handler():
             elif path == '/tarot':
                 tarot_card = get_tarot_card(user_id)
                 inline_title = "今天你的塔罗牌是：" + tarot_card
+            elif path == '/hitokoto':
+                inline_title = get_hitokoto()
             else:
                 inline_title = "你好 Marscode"
             return jsonify({
@@ -60,6 +73,10 @@ def time():
 @app.route('/tarot')
 def tarot():
     return redirect('https://tarotap.com/zh/card_meanings')
+
+@app.route('/hitokoto')
+def hitokoto_redirect():
+    return redirect('https://hitokoto.cn/')
 
 @app.route('/', defaults={'path': ''})
 @app.route('/<path:path>')
