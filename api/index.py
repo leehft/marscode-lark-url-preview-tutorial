@@ -1,5 +1,5 @@
 from flask import Flask, request, jsonify
-
+import datetime
 
 app = Flask(__name__)
 
@@ -17,7 +17,8 @@ def handler():
         return jsonify({
             'inline': {
                 'i18n_title': {
-                    'zh_cn': 'Hello MarsCode',
+                    # 获取当前时间并将其作为标题返回
+                    'zh_cn': datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                 },
                 'image_key': 'img_v3_02gp_bc939d82-ad8d-4dd0-856d-c26e2d161b9g',
             },
