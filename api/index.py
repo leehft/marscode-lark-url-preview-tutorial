@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, redirect
 import hashlib
 import random
 import datetime
@@ -53,10 +53,15 @@ def handler():
 
     return jsonify({})
 
-@app.route('/')
-def home():
-    return 'Hello, World!'
+@app.route('/time')
+def time():
+    return redirect('https://time.is/')
 
-@app.route('/about')
-def about():
-    return 'About'
+@app.route('/tarot')
+def tarot():
+    return redirect('https://tarotap.com/zh/card_meanings')
+
+@app.route('/', defaults={'path': ''})
+@app.route('/<path:path>')
+def catch_all(path):
+    return redirect('https://www.marscode.cn/')
