@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify
 import hashlib
 import random
 import datetime
+from urllib.parse import urlparse
 
 app = Flask(__name__)
 
@@ -28,12 +29,21 @@ def handler():
     if body and body.get('header', {}).get('event_type') == 'url.preview.get':
         user_id = body.get('event', {}).get('operator', {}).get('open_id')
         if user_id:
-            tarot_card = get_tarot_card(user_id)
+            url = body.get('event', {}).get('context', {}).get('url')
+            # 提取路径部分
+            parsed_url = urlparse(url)
+            path = parsed_url.path
+            if path == '/time':
+                inline_title = "当前时间是：" + datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            elif path == '/tarot':
+                tarot_card = get_tarot_card(user_id)
+                inline_title = "今天你的塔罗牌是：" + tarot_card
+            else:
+                inline_title = "你好 Marscode"
             return jsonify({
                 'inline': {
                     'i18n_title': {
-                        # 获取用户的塔罗牌并将其作为标题返回，添加前缀
-                        'zh_cn': "今天你的塔罗牌是：" + tarot_card,
+                        'zh_cn': inline_title,
                     },
                     'image_key': 'img_v3_02gp_bc939d82-ad8d-4dd0-856d-c26e2d161b9g',
                 },
