@@ -1,5 +1,5 @@
 from flask import Flask, request, jsonify
-
+from datetime import datetime
 
 app = Flask(__name__)
 
@@ -14,12 +14,17 @@ def handler():
         return jsonify({'challenge': body.get('challenge')})
 
     if body and body.get('header', {}).get('event_type') == 'url.preview.get':
+        # 计算距离元旦的天数
+        today = datetime.now()
+        new_year = datetime(today.year + 1, 1, 1)
+        days_until_new_year = (new_year - today).days
+
         return jsonify({
             'inline': {
                 'i18n_title': {
-                    'zh_cn': 'Hello MarsCode',
+                    'zh_cn': f'元旦还有{days_until_new_year}天',
                 },
-                'image_key': 'img_v3_02gp_bc939d82-ad8d-4dd0-856d-c26e2d161b9g',
+                'image_key': 'img_v3_02e1_cf42a888-b257-4f5a-9ad7-22317623e75g',
             },
         })
 
